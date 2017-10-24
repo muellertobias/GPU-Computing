@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GPU-Uebungen", "GPU-Uebungen\GPU-Uebungen.vcxproj", "{B797FCF2-2333-4270-BACE-19900723FC21}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestApp", "GPU-Uebungen\GPU-Uebungen.vcxproj", "{B797FCF2-2333-4270-BACE-19900723FC21}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MatrixVectorMultiplication", "MatrixVectorMultiplication\MatrixVectorMultiplication.vcxproj", "{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{B797FCF2-2333-4270-BACE-19900723FC21}.Release|x64.Build.0 = Release|x64
 		{B797FCF2-2333-4270-BACE-19900723FC21}.Release|x86.ActiveCfg = Release|Win32
 		{B797FCF2-2333-4270-BACE-19900723FC21}.Release|x86.Build.0 = Release|Win32
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Debug|x64.ActiveCfg = Debug|x64
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Debug|x64.Build.0 = Debug|x64
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Debug|x86.ActiveCfg = Debug|Win32
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Debug|x86.Build.0 = Debug|Win32
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Release|x64.ActiveCfg = Release|x64
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Release|x64.Build.0 = Release|x64
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Release|x86.ActiveCfg = Release|Win32
+		{9BFD99FC-E98D-4A93-9CDC-D991B01C9B9A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
