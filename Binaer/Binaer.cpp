@@ -17,25 +17,29 @@ void random_array(int *a, int size)
 	int temp;
 	int remain = size;
 	//clock_t last = clock();
+	// --------------------------------------Problem-von------------------------------------------------------------
 	srand(time(0));
 	for (int i = 0; i < size;i++) {
 		
 		temp = rand();
 		j = 0;
+		// Prüfung ob Element schon vorhanden
 		while (a[j] != -1 && a[j] != temp)
 		{
 			j++;
 		}
+		// Element nicht vorhanden
 		if (a[j] == -1) {
 			a[j] = temp;
 			cout  << remain - i << "	Plaetze warten auf Wert 	"<< i << "	Plaetze besitzen Wert" << endl;
 		}
+		// Element bereits vorhanden
 		else
 		{
-			i--;
+			i--; // Suche für gleichen Platz neue Zahl
 		}
-
 	}
+	// --------------------------------------Problem-bis------------------------------------------------------------
 }
 int vgl(const void *x,  const void *y) { // Die Funktion macht den Abfuck noch größer
 	return *(int*)x - *(int*)y;
