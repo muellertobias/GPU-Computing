@@ -6,7 +6,7 @@
 #include <omp.h>
 using namespace std;
 
-unsigned long long ulrand() 
+unsigned long ulrand() 
 {
 	return (static_cast<long>(rand()) << (sizeof(int) * 8)) | rand();
 }
@@ -22,25 +22,26 @@ void random_array(unsigned long *a, unsigned long *s, unsigned long size, unsign
 	int temp;
 	int remain = size;
 	clock_t last = clock();
-	// --------------------------------------Problem-von------------------------------------------------------------
 	srand(time(0));
 
 	a[0] = (1 + rand() % 3);
-	//#pragma omp parallel for
+	// parallelisierung nicht möglich 
 	for (unsigned long i = 1; i < size; i++)
 	{
 		a[i] = a[i - 1] + (1 + rand() % 100);
 	}
-	// --------------------------------------Problem-bis------------------------------------------------------------
-	/*int curs = 0;
-	for (int k = 0; k < (size_s / 2); k++) {
+
+	for (int k = 0; k < (size_s / 2); k++) 
+	{
 		s[k] = a[k];
-		curs = k + 1;
 	}
+
 	srand(time(0));
-	for (int l = curs; l < size_s; l++) {
-		s[l] = rand();
-	}*/
+	for (int l = size_s / 2; l < size_s; l++) 
+	{
+		s[l] = ulrand();
+		cout << s[l] << endl;
+	}
 }
 int vgl(const void *x,  const void *y) { // Die Funktion macht den Abfuck noch größer
 	return *(unsigned long*)x - *(unsigned long*)y;
