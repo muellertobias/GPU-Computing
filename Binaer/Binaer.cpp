@@ -4,24 +4,13 @@
 #include <ctime>
 #include <math.h>
 #include <omp.h>
+
 using namespace std;
 
-unsigned long ulrand() 
+void init_random_array(unsigned long *a, unsigned long *s, unsigned long size, unsigned long size_s)
 {
-	return (static_cast<long>(rand()) << (sizeof(int) * 8)) | rand();
-}
-
-void random_array(unsigned long *a, unsigned long *s, unsigned long size, unsigned long size_s)
-{
-	cout << "-1 init" << endl;
-	for (int i = 0; i < size; i++) {
-		a[i] = -1;
-	}
-	cout << "random init" << endl;
-	int j;
-	int temp;
-	int remain = size;
-	clock_t last = clock();
+	cout << "init: array a" << endl;
+	
 	srand(time(0));
 
 	a[0] = (1 + rand() % 3);
@@ -31,6 +20,7 @@ void random_array(unsigned long *a, unsigned long *s, unsigned long size, unsign
 		a[i] = a[i - 1] + (1 + rand() % 100);
 	}
 
+	cout << "init: array s" << endl;
 	for (int k = 0; k < (size_s / 2); k++) 
 	{
 		s[k] = a[k];
@@ -39,12 +29,8 @@ void random_array(unsigned long *a, unsigned long *s, unsigned long size, unsign
 	srand(time(0));
 	for (int l = size_s / 2; l < size_s; l++) 
 	{
-		s[l] = ulrand();
-		cout << s[l] << endl;
+		s[l] = (1 + rand()) * rand();
 	}
-}
-int vgl(const void *x,  const void *y) { // Die Funktion macht den Abfuck noch größer
-	return *(unsigned long*)x - *(unsigned long*)y;
 }
 
 int main()
@@ -53,19 +39,15 @@ int main()
 	const unsigned long size_s = 10000;
 	unsigned long *a = new unsigned long[size];
 	unsigned long *s = new unsigned long[size_s];
-	
-	random_array(a, s, size, size_s);
-	/*for (unsigned long i = 0; i < size; i++) {
-		cout << a[size - i - 1] << endl;
-	}*/
 
-	qsort(a, sizeof(a)/sizeof(unsigned long), sizeof(unsigned long), vgl); // Sortieren ... kp das Teil ist ziemlicher abfuck :-D ... Prüfung
-	
-	/*for (unsigned long i = 0; i < size; i++) {
-		cout << a[size - i - 1] << endl;
-	} */
+	init_random_array(a, s, size, size_s);
 
-	cout << a[size - 1] << endl;
+	clock_t start = clock();
+
+	// do it!
+
+	cout << "Laufzeit: " << (clock() - start) / CLOCKS_PER_SEC << endl;
+	cout << "Press any key..." << endl;
 	int tmp = 0;
 	cin >> tmp;
 }
