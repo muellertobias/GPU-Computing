@@ -64,6 +64,9 @@ int main()
 	unsigned long *s = new unsigned long[size_s];
 
 	init_random_array(a, s, size, size_s);
+
+	cout << "Search..." << endl;
+
 	int counter = 0;
 	clock_t start = clock();
 
