@@ -112,7 +112,7 @@ void doTestParallel()
 	counter = 0;
 	start = clock();
 
-	#pragma omp parallel for schedule(guided[1])
+	#pragma omp parallel for schedule(guided, 1)
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
