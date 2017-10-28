@@ -59,7 +59,7 @@ void init_random_array(unsigned long *a, unsigned long *s, long size, long size_
 int main()
 {
 	const long size = 268435456;
-	const long size_s = 10000;
+	const long size_s = size / 2;
 	unsigned long *a = new unsigned long[size];
 	unsigned long *s = new unsigned long[size_s];
 
@@ -67,7 +67,6 @@ int main()
 	int counter = 0;
 	clock_t start = clock();
 
-	//#pragma omp parallel for
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
@@ -78,7 +77,7 @@ int main()
 	}
 
 	cout << "Found: " << counter << endl;
-	cout << "Runtime: " << (clock() - start) / CLOCKS_PER_SEC << endl;
+	cout << "Runtime: " << (double)(clock() - start) / CLOCKS_PER_SEC << endl;
 	cout << "Press any key..." << endl;
 	int tmp = 0;
 	cin >> tmp;
