@@ -4,6 +4,7 @@
 #include <ctime>
 #include <math.h>
 #include <omp.h>
+#include "Binaer.h"
 
 using namespace std;
 
@@ -56,10 +57,8 @@ void init_random_array(unsigned long *a, unsigned long *s, long size, long size_
 	}
 }
 
-int main()
+void doTestParallel()
 {
-	clock_t all = clock();
-
 	const long size = 268435456;
 	const long size_s = size / 2;
 	unsigned long *a = new unsigned long[size];
@@ -85,7 +84,7 @@ int main()
 	counter = 0;
 	start = clock();
 
-	#pragma omp parallel for 
+#pragma omp parallel for 
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
@@ -99,7 +98,7 @@ int main()
 	counter = 0;
 	start = clock();
 
-	#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
@@ -124,6 +123,19 @@ int main()
 	}
 	cout << "Runtime  with static guided [c=1]: " << (double)(clock() - start) / CLOCKS_PER_SEC << endl;
 	cout << "Found: " << counter << endl;
+
+	delete[] a;
+	delete[] s;
+}
+
+int main()
+{
+	clock_t all = clock();
+
+	for (int i = 0; i < 5; i++)
+	{
+		doTestParallel();
+	}
 
 	cout << "Runtime complete: " << (double)(clock() - all) / CLOCKS_PER_SEC << endl;
 	cout << "Press any key..." << endl;
