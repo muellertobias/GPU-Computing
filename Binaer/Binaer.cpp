@@ -76,7 +76,7 @@ void doTestParallel(ofstream &outfile)
 	clock_t start = clock();
 	double end = 0;
 
-	/*for (int i = 0; i < size_s; i++)
+	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
 		if (index != -1)
@@ -89,7 +89,7 @@ void doTestParallel(ofstream &outfile)
 	cout << "Found: " << counter << endl;
 	counter = 0;
 	start = clock();
-	outfile << "Runtime without parallelization: " << end << " s" << endl;*/
+	outfile << "Runtime without parallelization: " << end << " s" << endl;
 
 #pragma omp parallel for reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
@@ -133,9 +133,9 @@ void doTestParallel(ofstream &outfile)
 		}
 	}
 	end = (double)(clock() - start) / CLOCKS_PER_SEC;
-	cout << "Runtime with guided schedeling [c=1]: " << end << endl;
+	cout << "Runtime with guided scheduling [c=1]: " << end << endl;
 	cout << "Found: " << counter << endl;
-	outfile << "Runtime with guided schedeling [c=1]: " << end << " s" << endl;
+	outfile << "Runtime with guided scheduling [c=1]: " << end << " s" << endl;
 
 	delete[] a;
 	delete[] s;
