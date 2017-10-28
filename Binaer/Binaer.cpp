@@ -6,8 +6,12 @@
 #include <omp.h>
 using namespace std;
 
+unsigned long long ulrand() 
+{
+	return (static_cast<long>(rand()) << (sizeof(int) * 8)) | rand();
+}
 
-void random_array(int *a,int *s, int size, int size_s)
+void random_array(unsigned long *a, unsigned long *s, unsigned long size, unsigned long size_s)
 {
 	cout << "-1 init" << endl;
 	for (int i = 0; i < size; i++) {
@@ -20,33 +24,15 @@ void random_array(int *a,int *s, int size, int size_s)
 	clock_t last = clock();
 	// --------------------------------------Problem-von------------------------------------------------------------
 	srand(time(0));
-	#pragma omp parallel for
-	for (int i = 0; i < size;i++) {
-		
-		//temp = rand();
-		temp = i;
-		j = 0;
-		// Prüfung ob Element schon vorhanden
-		while (a[j] != -1 && a[j] != temp)
-		{
-			j++;
-		}
-		// Element nicht vorhanden
-		if (a[j] == -1) {
-			a[j] = temp;
-			if (last + 10000 < clock()) {
-				cout << remain - i << "	Plaetze warten auf Wert 	" << i << "	Plaetze besitzen Wert" << endl;
-				last = clock();
-			}
-		}
-		// Element bereits vorhanden
-		else
-		{
-			i--; // Suche für gleichen Platz neue Zahl
-		}
+
+	a[0] = (1 + rand() % 3);
+	//#pragma omp parallel for
+	for (unsigned long i = 1; i < size; i++)
+	{
+		a[i] = a[i - 1] + (1 + rand() % 100);
 	}
 	// --------------------------------------Problem-bis------------------------------------------------------------
-	int curs = 0;
+	/*int curs = 0;
 	for (int k = 0; k < (size_s / 2); k++) {
 		s[k] = a[k];
 		curs = k + 1;
@@ -54,24 +40,31 @@ void random_array(int *a,int *s, int size, int size_s)
 	srand(time(0));
 	for (int l = curs; l < size_s; l++) {
 		s[l] = rand();
-	}
+	}*/
 }
 int vgl(const void *x,  const void *y) { // Die Funktion macht den Abfuck noch größer
-	return *(int*)x - *(int*)y;
+	return *(unsigned long*)x - *(unsigned long*)y;
 }
 
 int main()
 {
+	const unsigned long size = 268435456;
+	const unsigned long size_s = 10000;
+	unsigned long *a = new unsigned long[size];
+	unsigned long *s = new unsigned long[size_s];
 	
-	const int size = 268435456;
-	const int size_s = 10000;
-	int *a = new int[size];
-	int *s = new int[size_s];
-	random_array(a,s, size, size_s);
-	qsort(a, sizeof(a)/sizeof(int), sizeof(int), vgl); // Sortieren ... kp das Teil ist ziemlicher abfuck :-D ... Prüfung
-	for (int i = 0; i < size;i++) {
-		cout << a[i] << endl;
-	} 
+	random_array(a, s, size, size_s);
+	/*for (unsigned long i = 0; i < size; i++) {
+		cout << a[size - i - 1] << endl;
+	}*/
+
+	qsort(a, sizeof(a)/sizeof(unsigned long), sizeof(unsigned long), vgl); // Sortieren ... kp das Teil ist ziemlicher abfuck :-D ... Prüfung
+	
+	/*for (unsigned long i = 0; i < size; i++) {
+		cout << a[size - i - 1] << endl;
+	} */
+
+	cout << a[size - 1] << endl;
 	int tmp = 0;
 	cin >> tmp;
 }
