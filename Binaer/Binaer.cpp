@@ -75,7 +75,7 @@ void doTestParallel(ofstream &outfile)
 	int counter = 0;
 	clock_t start = clock();
 	double end = 0;
-
+	/*
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
@@ -90,23 +90,23 @@ void doTestParallel(ofstream &outfile)
 	counter = 0;
 	start = clock();
 	outfile << "Runtime without parallelization: " << end << " s" << endl;
-
-#pragma omp parallel for reduction(+:counter)
-	for (int i = 0; i < size_s; i++)
-	{
-		long index = binary_search(s[i], a, size);
-		if (index != -1)
-		{
-			counter++;
-		}
-	}
-	end = (double)(clock() - start) / CLOCKS_PER_SEC;
-	cout << "Runtime with static scheduling: " << end << endl;
-	cout << "Found: " << counter << endl;
-	counter = 0;
-	start = clock();
-	outfile << "Runtime with static scheduling: " << end << " s" << endl;
-
+	*/
+//#pragma omp parallel for reduction(+:counter)
+//	for (int i = 0; i < size_s; i++)
+//	{
+//		long index = binary_search(s[i], a, size);
+//		if (index != -1)
+//		{
+//			counter++;
+//		}
+//	}
+//	end = (double)(clock() - start) / CLOCKS_PER_SEC;
+//	cout << "Runtime with static scheduling: " << end << endl;
+//	cout << "Found: " << counter << endl;
+//	counter = 0;
+//	start = clock();
+//	outfile << "Runtime with static scheduling: " << end << " s" << endl;
+//
 #pragma omp parallel for schedule(dynamic) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
@@ -122,6 +122,22 @@ void doTestParallel(ofstream &outfile)
 	counter = 0;
 	start = clock();
 	outfile << "Runtime with dynamic scheduling: " << end << " s" << endl;
+
+#pragma omp parallel for schedule(guided, 3) reduction(+:counter)
+	for (int i = 0; i < size_s; i++)
+	{
+		long index = binary_search(s[i], a, size);
+		if (index != -1)
+		{
+			counter++;
+		}
+	}
+	end = (double)(clock() - start) / CLOCKS_PER_SEC;
+	cout << "Runtime  with guided scheduling [c=2]" << end << endl;
+	cout << "Found: " << counter << endl;
+	counter = 0;
+	start = clock();
+	outfile << "Runtime with guided scheduling [c=2]: " << end << " s" << endl;
 
 #pragma omp parallel for schedule(guided, 1) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
