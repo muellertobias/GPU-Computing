@@ -70,12 +70,12 @@ void doTestParallel(ofstream &outfile)
 
 	init_random_array(a, s, size, size_s);
 
-	cout << "Search..." << endl;
+	cout << "Search... without threading" << endl;
 
 	int counter = 0;
 	clock_t start = clock();
 	double end = 0;
-	/*
+
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
@@ -90,23 +90,42 @@ void doTestParallel(ofstream &outfile)
 	counter = 0;
 	start = clock();
 	outfile << "Runtime without parallelization: " << end << " s" << endl;
-	*/
-//#pragma omp parallel for reduction(+:counter)
-//	for (int i = 0; i < size_s; i++)
-//	{
-//		long index = binary_search(s[i], a, size);
-//		if (index != -1)
-//		{
-//			counter++;
-//		}
-//	}
-//	end = (double)(clock() - start) / CLOCKS_PER_SEC;
-//	cout << "Runtime with static scheduling: " << end << endl;
-//	cout << "Found: " << counter << endl;
-//	counter = 0;
-//	start = clock();
-//	outfile << "Runtime with static scheduling: " << end << " s" << endl;
-//
+	
+	cout << "Search... static" << endl;
+#pragma omp parallel for schedule(static) reduction(+:counter)
+	for (int i = 0; i < size_s; i++)
+	{
+		long index = binary_search(s[i], a, size);
+		if (index != -1)
+		{
+			counter++;
+		}
+	}
+	end = (double)(clock() - start) / CLOCKS_PER_SEC;
+	cout << "Runtime with static scheduling: " << end << endl;
+	cout << "Found: " << counter << endl;
+	counter = 0;
+	start = clock();
+	outfile << "Runtime with static scheduling: " << end << " s" << endl;
+
+	cout << "Search... static" << endl;
+#pragma omp parallel for schedule(static, 1) reduction(+:counter)
+	for (int i = 0; i < size_s; i++)
+	{
+		long index = binary_search(s[i], a, size);
+		if (index != -1)
+		{
+			counter++;
+		}
+	}
+	end = (double)(clock() - start) / CLOCKS_PER_SEC;
+	cout << "Runtime with static scheduling [c=1]: " << end << endl;
+	cout << "Found: " << counter << endl;
+	counter = 0;
+	start = clock();
+	outfile << "Runtime with static scheduling [c=1]: " << end << " s" << endl;
+
+	cout << "Search... dynamic" << endl;
 #pragma omp parallel for schedule(dynamic) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
@@ -123,7 +142,8 @@ void doTestParallel(ofstream &outfile)
 	start = clock();
 	outfile << "Runtime with dynamic scheduling: " << end << " s" << endl;
 
-#pragma omp parallel for schedule(guided, 3) reduction(+:counter)
+	cout << "Search... dynamic" << endl;
+#pragma omp parallel for schedule(dynamic, 5) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
 		long index = binary_search(s[i], a, size);
@@ -133,12 +153,30 @@ void doTestParallel(ofstream &outfile)
 		}
 	}
 	end = (double)(clock() - start) / CLOCKS_PER_SEC;
-	cout << "Runtime  with guided scheduling [c=2]" << end << endl;
+	cout << "Runtime  with dynamic scheduling [c=5]: " << end << endl;
 	cout << "Found: " << counter << endl;
 	counter = 0;
 	start = clock();
-	outfile << "Runtime with guided scheduling [c=2]: " << end << " s" << endl;
+	outfile << "Runtime with dynamic scheduling [c=5]: " << end << " s" << endl;
 
+	cout << "Search... guided" << endl;
+#pragma omp parallel for schedule(guided, 5) reduction(+:counter)
+	for (int i = 0; i < size_s; i++)
+	{
+		long index = binary_search(s[i], a, size);
+		if (index != -1)
+		{
+			counter++;
+		}
+	}
+	end = (double)(clock() - start) / CLOCKS_PER_SEC;
+	cout << "Runtime  with guided scheduling [c=5]" << end << endl;
+	cout << "Found: " << counter << endl;
+	counter = 0;
+	start = clock();
+	outfile << "Runtime with guided scheduling [c=5]: " << end << " s" << endl;
+
+	cout << "Search... guided" << endl;
 #pragma omp parallel for schedule(guided, 1) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
@@ -163,7 +201,7 @@ int main()
 
 	clock_t all = clock();
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 5; i++)
 	{
 		outfile << i + 1 << ". Iteration:" << endl;
 		doTestParallel(outfile);
