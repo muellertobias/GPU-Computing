@@ -21,9 +21,6 @@
   <ItemGroup>
     <ClCompile Include="Binaer.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Binaer.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{557B5789-81DD-4DEB-8A09-529C92905312}</ProjectGuid>

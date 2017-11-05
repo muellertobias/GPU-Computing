@@ -7,7 +7,6 @@
 #include <ctime>
 #include <math.h>
 #include <omp.h>
-#include "Binaer.h"
 #include <fstream>
 
 using namespace std;
