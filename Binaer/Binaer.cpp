@@ -1,3 +1,6 @@
+// Binaer.cpp
+// Übung 1 - Aufgabe 3
+// Julian Kirsch & Tobias Mueller
 
 #include <iostream> 
 #include <stdlib.h>
@@ -9,66 +12,64 @@
 
 using namespace std;
 
-long binary_search(const unsigned long suchwert, unsigned long *a, const  long eintraege)
+long binarySearch(const unsigned long searchValue, unsigned long *a, const long n)
 {
-	const long NICHT_GEFUNDEN = -1;
-	long links = 0;
-	long rechts = eintraege - 1;
+	const long NOT_FOUND = -1;
+	long left = 0;
+	long right = n - 1;
 
-	while (links <= rechts)
+	while (left <= right)
 	{
-		long mitte = links + ((rechts - links) / 2);
+		long mitte = left + ((right - left) / 2);
 
-		if (a[mitte] == suchwert)
+		if (a[mitte] == searchValue)
 			return mitte;
 		else
-			if (a[mitte] > suchwert)
-				rechts = mitte - 1;
+			if (a[mitte] > searchValue)
+				right = mitte - 1;
 			else
-				links = mitte + 1;
+				left = mitte + 1;
 	}
 
-	return NICHT_GEFUNDEN;
-	// alternativ: return -mitte ; // gute Positionsschaetzung: "nach (-Returnwert) wuerde es hingehoeren"
+	return NOT_FOUND;
 }
 
-void init_random_array(unsigned long *a, unsigned long *s, long size, long size_s)
+void initArrayWithSortedRandomValues(unsigned long *a, unsigned long *s, long size, long size_s)
 {
 	cout << "init: array a" << endl;
 	
 	srand(time(0));
 
 	a[0] = (1 + rand() % 3);
-	// parallelisierung nicht möglich 
-#pragma omp parallel for 
+	#pragma omp parallel for 
 	for (long i = 1; i < size; i++)
 	{
 		a[i] = a[i - 1] + (1 + rand() % 100);
 	}
 
 	cout << "init: array s" << endl;
-#pragma omp parallel for 
+	#pragma omp parallel for 
 	for (int k = 0; k < (size_s / 2); k++) 
 	{
 		s[k] = a[k];
 	}
 
 	srand(time(0));
-#pragma omp parallel for 
+	#pragma omp parallel for 
 	for (int l = size_s / 2; l < size_s; l++) 
 	{
 		s[l] = (1 + rand()) * rand();
 	}
 }
 
-void doTestParallel(ofstream &outfile)
+void testSchedulings(ofstream &outfile)
 {
 	const long size = 268435456;
 	const long size_s = size / 2;
 	unsigned long *a = new unsigned long[size];
 	unsigned long *s = new unsigned long[size_s];
 
-	init_random_array(a, s, size, size_s);
+	initArrayWithSortedRandomValues(a, s, size, size_s);
 
 	cout << "Search... without threading" << endl;
 
@@ -78,12 +79,13 @@ void doTestParallel(ofstream &outfile)
 
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
 		}
 	}
+
 	end = (double)(clock() - start) / CLOCKS_PER_SEC;
 	cout << "Runtime without OpenMP: " << end << endl;
 	cout << "Found: " << counter << endl;
@@ -95,7 +97,7 @@ void doTestParallel(ofstream &outfile)
 #pragma omp parallel for schedule(static) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
@@ -112,7 +114,7 @@ void doTestParallel(ofstream &outfile)
 #pragma omp parallel for schedule(static, 1) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
@@ -129,7 +131,7 @@ void doTestParallel(ofstream &outfile)
 #pragma omp parallel for schedule(dynamic) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
@@ -146,7 +148,7 @@ void doTestParallel(ofstream &outfile)
 #pragma omp parallel for schedule(dynamic, 5) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
@@ -163,7 +165,7 @@ void doTestParallel(ofstream &outfile)
 #pragma omp parallel for schedule(guided, 5) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
@@ -180,7 +182,7 @@ void doTestParallel(ofstream &outfile)
 #pragma omp parallel for schedule(guided, 1) reduction(+:counter)
 	for (int i = 0; i < size_s; i++)
 	{
-		long index = binary_search(s[i], a, size);
+		long index = binarySearch(s[i], a, size);
 		if (index != -1)
 		{
 			counter++;
@@ -204,7 +206,7 @@ int main()
 	for (int i = 0; i < 5; i++)
 	{
 		outfile << i + 1 << ". Iteration:" << endl;
-		doTestParallel(outfile);
+		testSchedulings(outfile);
 	}
 	outfile.close();
 
