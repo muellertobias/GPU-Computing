@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <CL/opencl.h>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 // Kopiert von https://www.olcf.ornl.gov/tutorials/opencl-vector-addition/
 
@@ -141,5 +144,7 @@ int main(int argc, char* argv[])
 	free(h_b);
 	free(h_c);
 
+	int temp = 0;
+	std::cin >> temp;
 	return 0;
 }
