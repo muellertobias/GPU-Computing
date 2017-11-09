@@ -113,10 +113,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\lib\x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
