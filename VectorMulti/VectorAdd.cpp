@@ -1,6 +1,10 @@
+
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#include <CL/cl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <iostream>
 #include <CL/opencl.h>
 #include <iostream>
 #include <string>
@@ -10,19 +14,19 @@
 
 // OpenCL kernel. Each work item takes care of one element of c
 const char *kernelSource = "\n" \
-"#pragma OPENCL EXTENSION cl_khr_fp64 : enable                    \n" \
-"__kernel void vecAdd(  __global double *a,                       \n" \
-"                       __global double *b,                       \n" \
-"                       __global double *c,                       \n" \
-"                       const unsigned int n)                    \n" \
-"{                                                               \n" \
-"    //Get our global thread ID                                  \n" \
-"    int id = get_global_id(0);                                  \n" \
-"                                                                \n" \
-"    //Make sure we do not go out of bounds                      \n" \
-"    if (id < n)                                                 \n" \
-"        c[id] = a[id] + b[id];                                  \n" \
-"}                                                               \n" \
+"#pragma OPENCL EXTENSION cl_khr_fp64 : enable                    \n" \
+"__kernel void vecAdd(  __global double *a,                       \n" \
+"                       __global double *b,                       \n" \
+"                       __global double *c,                       \n" \
+"                       const unsigned int n)                    \n" \
+"{                                                               \n" \
+"    //Get our global thread ID                                  \n" \
+"    int id = get_global_id(0);                                  \n" \
+"                                                                \n" \
+"    //Make sure we do not go out of bounds                      \n" \
+"    if (id < n)                                                 \n" \
+"        c[id] = a[id] + b[id];                                  \n" \
+"}                                                               \n" \
 "\n";
 
 int main(int argc, char* argv[])
@@ -76,25 +80,31 @@ int main(int argc, char* argv[])
 
 	// Bind to platform
 	err = clGetPlatformIDs(1, &cpPlatform, NULL);
+	printf("GetPlatfrom: %d\n", err);
 
 	// Get ID for the device
 	err = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+	printf("GetDeviceIDs: %d\n", err);
 
 	// Create a context  
 	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+	printf("CreateContext: %d\n", err);
 
 	// Create a command queue 
-	queue = clCreateCommandQueueWithProperties(context, device_id, 0, &err);
+	queue = clCreateCommandQueue(context, device_id, 0, &err);
+	printf("CreateCommandQueue: %d\n", err);
 
 	// Create the compute program from the source buffer
 	program = clCreateProgramWithSource(context, 1,
 		(const char **)& kernelSource, NULL, &err);
+	printf("CreateProgramWithSource: %d\n", err);
 
 	// Build the program executable 
 	clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 
 	// Create the compute kernel in the program we wish to run
 	kernel = clCreateKernel(program, "vecAdd", &err);
+	printf("CreateKernel: %d\n", err);
 
 	// Create the input and output arrays in device memory for our calculation
 	d_a = clCreateBuffer(context, CL_MEM_READ_ONLY, bytes, NULL, NULL);
@@ -106,12 +116,14 @@ int main(int argc, char* argv[])
 		bytes, h_a, 0, NULL, NULL);
 	err |= clEnqueueWriteBuffer(queue, d_b, CL_TRUE, 0,
 		bytes, h_b, 0, NULL, NULL);
+	printf("EnqueueWriteBuffers: %d\n", err);
 
 	// Set the arguments to our compute kernel
 	err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_a);
 	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_b);
 	err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_c);
 	err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &n);
+	printf("SetKernelArgs: %d\n", err);
 
 	// Execute the kernel over the entire range of the data set  
 	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &localSize,
@@ -126,8 +138,12 @@ int main(int argc, char* argv[])
 
 	//Sum up vector c and print result divided by n, this should equal 1 within error
 	double sum = 0;
-	for (i = 0; i<n; i++)
+	for (i = 0; i < n; i++) {
 		sum += h_c[i];
+		/*printf("h_a[%d] = %f\n", i, h_a[i]);
+		printf("h_b[%d] = %f\n", i, h_b[i]);
+		printf("h_c[%d] = %f\n", i, h_c[i]);*/
+	}
 	printf("final result: %f\n", sum / n);
 
 	// release OpenCL resources
@@ -144,7 +160,7 @@ int main(int argc, char* argv[])
 	free(h_b);
 	free(h_c);
 
-	int temp = 0;
-	std::cin >> temp;
+	int a = 0;
+	std::cin >> a;
 	return 0;
 }
