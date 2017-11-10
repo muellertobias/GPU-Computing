@@ -3,7 +3,7 @@
 #include <pthread.h> 
 #include <ctime>
 #include <iostream>
-#include <omp.h>
+
 #define _UWIN
 
 const int P = 4;
