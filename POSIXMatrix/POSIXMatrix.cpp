@@ -7,10 +7,11 @@
 #define _UWIN
 
 const int P = 4;
-const int n = 160;
+const int n = 1600;
 const int rows = (n / P);
 float **A = new float*[n];
 float b[n];
+float c[n];
 typedef struct par { int base; long long sum; float sumRows[rows]; } Par;
 using namespace std;
 
@@ -46,13 +47,12 @@ void initMatrixWithRandom(float** matrix, int n, int m)
 
 void* foo(void* vp) {
 	Par* p = (Par*)vp;
-	int rowCounter = 0;
-	for (int i = p->base; i < p->base + n / P; i++) {
+	for (int i = p->base; i < p->base + n / P; i++) 
+	{
 		for (int j = 0; j < n; j++)
 		{
-			p->sumRows[rowCounter] += A[i][j] * b[j];
+			c[i - p->base] += A[i][j] * b[j];
 		}
-		rowCounter++;
 	}
 	return p;
 }
@@ -61,8 +61,6 @@ int main(int argc, char *argv[])
 {
 	pthread_t thr[P];
 	Par param[P];
-
-	float c[n];
 
 	cout << "Init..." << endl;
 	initVectorWithRandom(b, n);
@@ -96,7 +94,7 @@ int main(int argc, char *argv[])
 		pthread_create(&thr[i], NULL, foo, (void*)&param[i]);
 	}
 	int thread = 0;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < P; i++)
 	{
 		pthread_join(thr[i], NULL);
 		for (int j = 0; j < rows; j++) {
@@ -107,6 +105,12 @@ int main(int argc, char *argv[])
 		thread++;
 		
 	}
+
+	for (int i = 0; i < P; i++) 
+	{
+		pthread_join(thr[i], NULL);
+	}
+
 	double endThread = (double)(clock() - startThread) / CLOCKS_PER_SEC;
 	cout << "Time with threads: " << endThread;
 
