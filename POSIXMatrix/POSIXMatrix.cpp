@@ -7,7 +7,7 @@
 #define _UWIN
 
 const int P = 4;
-const int n = 1600;
+const int n = 160;
 const int rows = (n / P);
 float **A = new float*[n];
 float b[n];
@@ -70,15 +70,13 @@ int main(int argc, char *argv[])
 	cout << "Sequenz:  Calculate A x b = c ..." << endl;
 	//-----Sequenz-----
 	clock_t startSeq = clock();
+
 	float cSeq[n];
-	float sumRowSeq = 0;
 	for (int i = 0; i < n; i++) {
-		sumRowSeq = 0;
 		for (int j = 0; j < n; j++)
 		{
-			sumRowSeq += A[i][j] * b[j];
+			cSeq[i] += A[i][j] * b[j];
 		}
-		cSeq[i] = sumRowSeq;
 	}
 
 	double endSeq = (double)(clock() - startSeq) / CLOCKS_PER_SEC;
