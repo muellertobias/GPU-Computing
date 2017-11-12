@@ -22,6 +22,7 @@ void initVectorWithRandom(float* vector, int n)
 	for (int i = 0; i < n; i++)
 	{
 		vector[i] = (float)rand() / (float)(RAND_MAX / (float)rand());
+		//vector[i] = 1;
 	}
 }
 
@@ -41,6 +42,7 @@ void initMatrixWithRandom(float** matrix, int n, int m)
 		for (int j = 0; j < n; j++)
 		{
 			matrix[i][j] = (float)rand() / (float)(RAND_MAX / (float)rand());
+			//matrix[i][j] = 1;
 		}
 	}
 }
@@ -51,7 +53,7 @@ void* foo(void* vp) {
 	{
 		for (int j = 0; j < n; j++)
 		{
-			c[i - p->base] += A[i][j] * b[j];
+			c[i] += A[i][j] * b[j];
 		}
 	}
 	return p;
@@ -72,6 +74,7 @@ int main(int argc, char *argv[])
 	clock_t startSeq = clock();
 
 	float cSeq[n];
+	initVectorWithNull(cSeq, n);
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++)
 		{
