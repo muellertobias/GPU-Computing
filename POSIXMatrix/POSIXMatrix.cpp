@@ -93,18 +93,6 @@ int main(int argc, char *argv[])
 		param[i].base = i*n / P;
 		pthread_create(&thr[i], NULL, foo, (void*)&param[i]);
 	}
-	int thread = 0;
-	for (int i = 0; i < P; i++)
-	{
-		pthread_join(thr[i], NULL);
-		for (int j = 0; j < rows; j++) {
-			c[i] = param[thread].sumRows[j];
-			i++;
-			
-		}
-		thread++;
-		
-	}
 
 	for (int i = 0; i < P; i++) 
 	{
