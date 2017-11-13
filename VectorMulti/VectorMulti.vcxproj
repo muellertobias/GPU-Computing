@@ -29,6 +29,9 @@
   <ItemGroup>
     <ClCompile Include="VectorAdd.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Kernel.cl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{14CC46E3-0626-423B-B29D-AA7EDD1EE251}</ProjectGuid>
