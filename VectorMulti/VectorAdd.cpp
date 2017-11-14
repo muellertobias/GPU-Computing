@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 	printf("CreateContext: %d\n", err);
 
 	// Create a command queue 
-	queue = clCreateCommandQueue(context, device_id, 0, &err);
+	queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
 	printf("CreateCommandQueue: %d\n", err);
 
 	// Create the compute program from the source buffer
