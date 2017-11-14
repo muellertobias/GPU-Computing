@@ -1,6 +1,6 @@
 #include <CL/opencl.h>
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
-#include <CL/cl.h>
+//#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+//#include <CL/cl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
