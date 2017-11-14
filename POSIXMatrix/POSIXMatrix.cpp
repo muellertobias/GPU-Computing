@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
 	for (int i = 0; i < P; i++) 
 	{
-		pthread_join(thr[i], NULL);
+		pthread_join(thr[i], NULL); // wartet auf Threads
 	}
 
 	double endThread = (double)(clock() - startThread) / CLOCKS_PER_SEC;
