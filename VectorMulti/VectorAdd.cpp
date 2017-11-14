@@ -1,6 +1,7 @@
+
+#define CL_USE_DEPRECATED_OPENCL_1_0_APIS
 #include <CL/opencl.h>
-//#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
-//#include <CL/cl.h>
+#include <CL/cl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -93,6 +94,7 @@ int main(int argc, char* argv[])
 	printf("CreateContext: %d\n", err);
 
 	// Create a command queue 
+	//queue = clCreateCommandQueue(context, device_id, NULL, &err);
 	queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
 	printf("CreateCommandQueue: %d\n", err);
 
