@@ -4,7 +4,7 @@ __kernel void vecAdd(__global double *a, __global double *b, __global double *c,
 {
     //Get our global thread ID
     int id = get_global_id(0);
-
+	
     //Make sure we do not go out of bounds
 	if (id < n)
 	{
