@@ -116,7 +116,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="OpenCLMatrixcpp.cpp" />
+    <ClCompile Include="OpenCLMatrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Kernel.cl" />
