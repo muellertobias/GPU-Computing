@@ -5,7 +5,8 @@ __kernel void vecAdd(__global double *a, __global double *b, __global double *c,
     int id = get_global_id(0);
 	
     //Make sure we do not go out of bounds
-	if (id < n*n)
+	int maxSize = n*n;
+	if (id < maxSize)
 	{
 		int posB = (id % n) -1;
 		if (posB < 0)
