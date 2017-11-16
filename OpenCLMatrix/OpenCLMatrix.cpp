@@ -23,23 +23,6 @@ char* readSourceFile(const char* filename);
 
 using namespace std;
 
-// OpenCL kernel. Each work item takes care of one element of c
-//const char *kernelSource = "\n" \
-//"#pragma OPENCL EXTENSION cl_khr_fp64 : enable                    \n" \
-//"__kernel void vecAdd(  __global double *a,                       \n" \
-//"                       __global double *b,                       \n" \
-//"                       __global double *c,                       \n" \
-//"                       const unsigned int n)                    \n" \
-//"{                                                               \n" \
-//"    //Get our global thread ID                                  \n" \
-//"    int id = get_global_id(0);                                  \n" \
-//"                                                                \n" \
-//"    //Make sure we do not go out of bounds                      \n" \
-//"    if (id < n)                                                 \n" \
-//"        c[id] = a[id] + b[id];                                  \n" \
-//"}                                                               \n" \
-//"\n";
-
 void initVector(double* vector, int n)
 {
 	srand(time(NULL));
@@ -62,7 +45,8 @@ void initVectorWithNull(double* vector, int n)
 void initMatrix(double* matrix, int n, int m)
 {
 #pragma omp parallel for
-	for (int i = 0; i < n*n; i++)
+	int size = n*n;
+	for (int i = 0; i < size; i++)
 	{
 		matrix[i] = i % 5;
 	}
@@ -162,7 +146,7 @@ int main(int argc, char* argv[])
 	clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
 
 	// Create the compute kernel in the program we wish to run
-	kernel = clCreateKernel(program, "vecAdd", &err);
+	kernel = clCreateKernel(program, "OpenCLMatrix", &err);
 	printf("CreateKernel: %d\n", err);
 
 	// Create the input and output arrays in device memory for our calculation
