@@ -5,10 +5,10 @@ __kernel void OpenCLMatrix(__global double *a, __global double *b, __global doub
     int id = get_global_id(0);
 	
     //Make sure we do not go out of bounds
-	int maxSize = n*n;
+	unsigned int maxSize = n*n;
 	if (id < maxSize)
 	{
-		int posB = (id % n) -1;
+		unsigned int posB = (id % n) -1;
 		if (posB < 0)
 		{
 			posB = n;
