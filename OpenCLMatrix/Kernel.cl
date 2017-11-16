@@ -12,9 +12,7 @@ __kernel void OpenCLMatrix(__global double *a, __global double *b, __global doub
 		if (posB < 0)
 		{
 			posB = n;
-		} else 
-		{
-			temp[id] = A[id] * b[posB];
-		}
+		} 
+		temp[id] = A[id] * b[posB];
 	}
 }  
