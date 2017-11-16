@@ -9,13 +9,7 @@
 #include <string>
 #include <sstream>
 
-// Host input vectors
-double *h_A;
-double *h_b;
-// temp Vector
-double *temp;
-// Host output vector
-double *h_c;
+
 
 // Kopiert von https://www.olcf.ornl.gov/tutorials/opencl-vector-addition/
 
@@ -64,6 +58,14 @@ void initMatrixWithNull(double* matrix, int n, int m)
 int main(int argc, char* argv[])
 {
 	const char* kernelSource = readSourceFile("Kernel.cl");
+
+	// Host input vectors
+	double *h_A;
+	double *h_b;
+	// temp Vector
+	double *temp;
+	// Host output vector
+	double *h_c;
 
 	// Length of vectors
 	unsigned int n = 10;

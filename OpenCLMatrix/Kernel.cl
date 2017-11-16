@@ -1,5 +1,5 @@
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
-__kernel void vecAdd(__global double *a, __global double *b, __global double *c, __global double *temp, const unsigned int n)
+__kernel void OpenCLMatrix(__global double *a, __global double *b, __global double *c, __global double *temp, const unsigned int n)
 {
     //Get our global thread ID
     int id = get_global_id(0);
