@@ -8,9 +8,12 @@
 #include <string>
 #include <sstream>
 
+void testMVMWithoutThreading(double* A, double* b, double* result, int n);
+void testOpenCL(const char* kernelSource, double* h_A, double* h_b, double* h_c, int n);
 
 char* readSourceFile(const char* filename);
 int readBool(const char c);
+void flush();
 void printMatrix(double* matrix, int n, int m);
 void initVector(double* vector, int n);
 void initVectorWithNull(double* vector, int n);
@@ -36,19 +39,9 @@ int main(int argc, char* argv[])
 	// Length of vectors
 	unsigned int n = 256;
 
-
-	// Device input buffers
-	cl_mem d_A;
-	cl_mem d_b;
-	// Device output buffer
-	cl_mem d_c;
-
-	cl_platform_id cpPlatform;		  // OpenCL platform
-	cl_device_id device_id;           // device ID
-	cl_context context;				  // context
-	cl_command_queue queue;			  // command queue
-	cl_program program;				  // program
-	cl_kernel kernel;				  // kernel
+	printf_s("n=");
+	scanf_s("%d", &n);
+	flush();
 
 	size_t bytes = n * sizeof(double);  // Size, in bytes, of each vector
 
@@ -63,18 +56,51 @@ int main(int argc, char* argv[])
 	initVectorWithNull(h_c, n);
 	initMatrix(h_A, n, n);
 
-	printf_s("Press 'y' to show matrix or press any key ... ");
-	int showMatrix = readBool('y');
-	if (showMatrix) 
-	{
-		printMatrix(h_A, n, n);
-		printf_s("\n");
-		printMatrix(h_b, 1, n);
-	}
+	testMVMWithoutThreading(h_A, h_b, h_c, n);
+	
+	initVectorWithNull(h_c, n);
 
+	testOpenCL(kernelSource, h_A, h_b, h_c, n);
+
+	//release host memory
+	free(h_A);
+	free(h_b);
+	free(h_c); 
+
+	printf("Press any key and then press enter...");
+	return getchar();
+}
+
+int readBool(const char c) 
+{
+	char input = 0;
+	input = getchar();
+	while (input != '\n' && getchar() != '\n');
+	return input == c;
+}
+
+void flush() 
+{
+	while (getchar() != '\n');
+}
+
+void printMatrix(double* matrix, int n, int m) 
+{
+	for (int n0 = 0; n0 < n; n0++)
+	{
+		for (int m0 = 0; m0 < m; m0++)
+		{
+			printf_s("%f ", matrix[n0 * n + m0]);
+		}
+		printf_s("\n");
+	}
+}
+
+void testMVMWithoutThreading(double* A, double* b, double* result, int n)
+{
 	clock_t start_normal = clock();
 
-	matrixVectorMultiplication(h_A, h_b, h_c, n);
+	matrixVectorMultiplication(A, b, result, n);
 
 	clock_t stop_normal = clock();
 	clock_t difference = stop_normal - start_normal;
@@ -82,16 +108,25 @@ int main(int argc, char* argv[])
 
 	printf_s("Finished Normal: %f s\n", t);
 	// ---------------------------------------- Bis hier
-	double sum = magnitudeVector(h_c, n);
+	double sum = magnitudeVector(result, n);
 	printf_s("final result: %f\n", sum / n);
+}
 
-	if (showMatrix) 
-	{
-		printf_s("Ergebnis:\n");
-		printMatrix(h_c, 1, n);
-	}
-	
-	initVectorWithNull(h_c, n);
+void testOpenCL(const char* kernelSource, double * h_A, double * h_b, double * h_c, int n)
+{
+	size_t bytes = n * sizeof(double);
+	// Device input buffers
+	cl_mem d_A;
+	cl_mem d_b;
+	// Device output buffer
+	cl_mem d_c;
+
+	cl_platform_id cpPlatform;		  // OpenCL platform
+	cl_device_id device_id;           // device ID
+	cl_context context;				  // context
+	cl_command_queue queue;			  // command queue
+	cl_program program;				  // program
+	cl_kernel kernel;				  // kernel
 
 	size_t globalSize, localSize;
 	cl_int err;
@@ -128,7 +163,7 @@ int main(int argc, char* argv[])
 
 	// Create the compute kernel in the program we wish to run
 	kernel = clCreateKernel(program, "OpenCLMatrix", &err);
-	printf("CreateKernel: %d\n", err); 
+	printf("CreateKernel: %d\n", err);
 
 	// Create the input and output arrays in device memory for our calculation
 	d_A = clCreateBuffer(context, CL_MEM_READ_ONLY, bytes * bytes, NULL, NULL);
@@ -159,16 +194,14 @@ int main(int argc, char* argv[])
 	clEnqueueReadBuffer(queue, d_c, CL_TRUE, 0, bytes, h_c, 0, NULL, NULL);
 
 	clock_t stop_GPU = clock();
-	difference = stop_GPU - start_GPU;
-	t = (double)difference / CLOCKS_PER_SEC;
+	double t = (stop_GPU - start_GPU) / CLOCKS_PER_SEC;
 	printf_s("Finished GPU: %f s\n", t);
 
-
 	//Sum up vector c and print result divided by n, this should equal 1 within error
-	sum = magnitudeVector(h_c, n);
+	double sum = magnitudeVector(h_c, n);
 	printf_s("final result: %f\n", sum / n);
 	// -------------------------------------------------------------------------------------- Ende GPU
-	
+
 	// release OpenCL resources
 	clReleaseMemObject(d_A);
 	clReleaseMemObject(d_b);
@@ -177,34 +210,6 @@ int main(int argc, char* argv[])
 	clReleaseKernel(kernel);
 	clReleaseCommandQueue(queue);
 	clReleaseContext(context);
-
-	//release host memory
-	free(h_A);
-	free(h_b);
-	free(h_c); 
-
-	printf("Press any key and then press enter...");
-	return getchar();
-}
-
-int readBool(const char c) 
-{
-	char input = 0;
-	input = getchar();
-	while (input != '\n' && getchar() != '\n');
-	return input == c;
-}
-
-void printMatrix(double* matrix, int n, int m) 
-{
-	for (int n0 = 0; n0 < n; n0++)
-	{
-		for (int m0 = 0; m0 < m; m0++)
-		{
-			printf_s("%f ", matrix[n0 * n + m0]);
-		}
-		printf_s("\n");
-	}
 }
 
 char* readSourceFile(const char* filename)
