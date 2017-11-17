@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 	double *h_c;
 
 	// Length of vectors
-	unsigned int n = 200;
+	unsigned int n = 256;
 
 
 	// Device input buffers
@@ -43,14 +43,12 @@ int main(int argc, char* argv[])
 	// Device output buffer
 	cl_mem d_c;
 
-
 	cl_platform_id cpPlatform;		  // OpenCL platform
 	cl_device_id device_id;           // device ID
 	cl_context context;				  // context
 	cl_command_queue queue;			  // command queue
 	cl_program program;				  // program
 	cl_kernel kernel;				  // kernel
-
 
 	size_t bytes = n * sizeof(double);  // Size, in bytes, of each vector
 
@@ -192,7 +190,8 @@ int main(int argc, char* argv[])
 int readBool(const char c) 
 {
 	char input = 0;
-	while ((input = getchar()) != '\n');
+	input = getchar();
+	while (input != '\n' && getchar() != '\n');
 	return input == c;
 }
 
@@ -246,18 +245,24 @@ void initVectorWithNull(double* vector, int n)
 
 void initMatrix(double* matrix, int n, int m)
 {
-	int size = n * n;
-#pragma omp parallel for
+	int size = n * m;
+	#pragma omp parallel for
 	for (int i = 0; i < size; i++)
 	{
-		matrix[i] = i % 5;
+		int j_0 = i % n;
+		int i_0 = (i - j_0) / n;
+
+		// A[i][j] = (i + j) % 5
+		matrix[i] = (i_0 + j_0) % 5; 
+		//matrix[i] = i % 5; // funktioniert auch! Wenn man jedoch die ursprünglichen Werte von i,j benötigt, ist die obere Lösung besser
 	}
 }
 
 void initMatrixWithNull(double* matrix, int n, int m)
 {
+	int size = n * m;
 #pragma omp parallel for
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < size; i++)
 	{
 		matrix[i] = 0;
 	}
