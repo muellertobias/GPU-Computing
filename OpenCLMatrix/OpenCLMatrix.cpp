@@ -14,16 +14,19 @@
 // Kopiert von https://www.olcf.ornl.gov/tutorials/opencl-vector-addition/
 
 char* readSourceFile(const char* filename);
+int readBool(const char c);
+void printMatrix(double* matrix, int n, int m);
 
 using namespace std;
 
 void initVector(double* vector, int n)
 {
 	srand(time(NULL));
+
 #pragma omp parallel for
 	for (int i = 0; i < n; i++)
 	{
-		vector[i] = 5-(i % 5);
+		vector[i] = 5 - (i % 5);
 	}
 }
 
@@ -38,8 +41,8 @@ void initVectorWithNull(double* vector, int n)
 
 void initMatrix(double* matrix, int n, int m)
 {
+	int size = n * n;
 #pragma omp parallel for
-	int size = n*n;
 	for (int i = 0; i < size; i++)
 	{
 		matrix[i] = i % 5;
@@ -87,7 +90,7 @@ int main(int argc, char* argv[])
 	cl_kernel kernel;				  // kernel
 
 
-	size_t bytes = n * sizeof(float);  // Size, in bytes, of each vector
+	size_t bytes = n * sizeof(double);  // Size, in bytes, of each vector
 
 										// Allocate memory for each vector on host
 	h_A = (double*)malloc(bytes*bytes);
@@ -96,32 +99,18 @@ int main(int argc, char* argv[])
 	temp = (double*)malloc(bytes*bytes);
 
 	// Initialize vectors on host
-	cout << "init" << endl;
+	printf_s("init...\n");
 	initVector(h_b, n);
 	initVectorWithNull(h_c, n);
 	initMatrixWithNull(temp, n, n);
 	initMatrix(h_A, n, n);
 
-	printf("Press 'y' to show the cacluation or press any key ...");
-	char user;
-	std::cin >> user;
-
-	if (user == 'y') {
-		for (int i = 0; i < n; i++)
-		{
-			for (int j = 0; j < n;j++)
-			{
-				cout << " " << h_A[j];
-			}
-			cout << endl;
-		}
-	}
-
-	if (user == 'y') {
-		cout << " \n Vector \n" << endl;
-		for (int i = 0; i < n; i++) {
-			cout << h_b[i] << endl;
-		}
+	printf_s("Press 'y' to show matrix or press any key ... ");
+	int showMatrix = readBool('y');
+	if (showMatrix) {
+		printMatrix(h_A, n, n);
+		printf_s("\n");
+		printMatrix(h_b, 1, n);
 	}
 
 	unsigned int posB;
@@ -148,7 +137,7 @@ int main(int argc, char* argv[])
 	double t = (double)difference / CLOCKS_PER_SEC;
 	cout << "Finished Normal: " << t << " s" << endl;
 	// ---------------------------------------- Bis hier
-	if (user == 'y') {
+	if (showMatrix) {
 		cout << "\n Ergebnis \n" << endl;
 		for (int i = 0; i < n; i++) {
 			cout << h_c[i] << endl;
@@ -266,9 +255,26 @@ int main(int argc, char* argv[])
 	free(temp); 
 
 	printf("Press any key and then press enter...");
-	int a = 0;
-	std::cin >> a;
-	return 0;
+	return getchar();
+}
+
+int readBool(const char c) 
+{
+	char input = 0;
+	while ((input = getchar()) != '\n');
+	return input == c;
+}
+
+void printMatrix(double* matrix, int n, int m) 
+{
+	for (int n0 = 0; n0 < n; n0++)
+	{
+		for (int m0 = 0; m0 < m; m0++)
+		{
+			printf_s("%f ", matrix[n0 * n + m0]);
+		}
+		printf_s("\n");
+	}
 }
 
 char* readSourceFile(const char* filename)
