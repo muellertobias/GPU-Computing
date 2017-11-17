@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 	double *h_c;
 
 	// Length of vectors
-	unsigned int n = 10;
+	unsigned int n = 200;
 
 
 	// Device input buffers
@@ -102,15 +102,60 @@ int main(int argc, char* argv[])
 	initMatrixWithNull(temp, n, n);
 	initMatrix(h_A, n, n);
 
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n;j++)
+	printf("Press 'y' to show the cacluation or press any key ...");
+	char user;
+	std::cin >> user;
+
+	if (user == 'y') {
+		for (int i = 0; i < n; i++)
 		{
-			cout << " " <<h_A[i];
+			for (int j = 0; j < n;j++)
+			{
+				cout << " " << h_A[j];
+			}
+			cout << endl;
 		}
-		cout << endl;
+	}
+
+	if (user == 'y') {
+		cout << " \n Vector \n" << endl;
+		for (int i = 0; i < n; i++) {
+			cout << h_b[i] << endl;
+		}
+	}
+
+	unsigned int posB;
+	int rowCounter = 0;
+	int vectorRowCurser = 0;
+	int rowAdd = 0;
+	// ---------------------------------------- Normale Berechnung ohne GPU
+	clock_t start_normal = clock();
+	for (int i = 0; i < n*n; i++)
+	{
+		posB = (i % n);
+		rowAdd += h_A[i] * h_b[posB];
+		rowCounter++;
+		if (rowCounter == n) {
+			h_c[vectorRowCurser] = rowAdd;
+			rowAdd = 0;
+			vectorRowCurser++;
+			rowCounter = 0;
+		}
+	}
+
+	clock_t stop_normal = clock();
+	clock_t difference = stop_normal - start_normal;
+	double t = (double)difference / CLOCKS_PER_SEC;
+	cout << "Finished Normal: " << t << " s" << endl;
+	// ---------------------------------------- Bis hier
+	if (user == 'y') {
+		cout << "\n Ergebnis \n" << endl;
+		for (int i = 0; i < n; i++) {
+			cout << h_c[i] << endl;
+		}
 	}
 	
+	initVectorWithNull(h_c, n);
 
 	size_t globalSize, localSize;
 	cl_int err;
@@ -172,6 +217,8 @@ int main(int argc, char* argv[])
 	err |= clSetKernelArg(kernel, 4, sizeof(unsigned int), &n);
 	printf("SetKernelArgs: %d\n", err);
 
+	// -------------------------------------------------------------------------------------- Start auf GPU
+	clock_t start_GPU = clock();
 	// Execute the kernel over the entire range of the data set  
 	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &localSize,
 		0, NULL, NULL);
@@ -193,8 +240,13 @@ int main(int argc, char* argv[])
 			h_c[i] += temp[i];
 		}
 		row += n;
-		cout << h_c[i] << endl;
+		//cout << h_c[i] << endl;
 	}
+	clock_t stop_GPU = clock();
+	clock_t difference = stop_GPU - start_GPU;
+	double t = (double)difference / CLOCKS_PER_SEC;
+	cout << " \n Finished GPU: " << t << " s" << endl;
+	// -------------------------------------------------------------------------------------- Ende GPU
 	//printf("final result: %f\n", sum / n);
 
 	// release OpenCL resources
@@ -211,7 +263,7 @@ int main(int argc, char* argv[])
 	free(h_A);
 	free(h_b);
 	free(h_c);
-	free(temp);
+	free(temp); 
 
 	printf("Press any key and then press enter...");
 	int a = 0;

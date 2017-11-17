@@ -6,13 +6,10 @@ __kernel void OpenCLMatrix(__global double *a, __global double *b, __global doub
 	
     //Make sure we do not go out of bounds
 	unsigned int maxSize = n*n;
+	unsigned int posB = 0;
 	if (id < maxSize)
 	{
-		unsigned int posB = (id % n) -1;
-		if (posB < 0)
-		{
-			posB = n;
-		} 
+		posB = id % n;
 		temp[id] = A[id] * b[posB];
 	}
 }  
