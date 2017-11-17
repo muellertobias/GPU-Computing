@@ -1,4 +1,4 @@
-#define CL_USE_DEPRECATED_OPENCL_1_0_APIS
+#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
 #include <CL/opencl.h>
 #include <CL/cl.h>
 #include <stdio.h>
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 
 	// Create a command queue 
 	//queue = clCreateCommandQueue(context, device_id, NULL, &err);
-	queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
+	queue = clCreateCommandQueue(context, device_id, NULL, &err);
 	printf("CreateCommandQueue: %d\n", err);
 
 	// Create the compute program from the source buffer
@@ -243,8 +243,8 @@ int main(int argc, char* argv[])
 		//cout << h_c[i] << endl;
 	}
 	clock_t stop_GPU = clock();
-	clock_t difference = stop_GPU - start_GPU;
-	double t = (double)difference / CLOCKS_PER_SEC;
+	difference = stop_GPU - start_GPU;
+	t = (double)difference / CLOCKS_PER_SEC;
 	cout << " \n Finished GPU: " << t << " s" << endl;
 	// -------------------------------------------------------------------------------------- Ende GPU
 	//printf("final result: %f\n", sum / n);
