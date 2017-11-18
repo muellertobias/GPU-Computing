@@ -8,20 +8,20 @@
 #include <string>
 #include <sstream>
 
-void testMVMWithoutThreading(double* A, double* b, double* result, int n);
-void testOpenCL(const char* kernelSource, double* h_A, double* h_b, double* h_c, int n);
+void testMVMWithoutThreading(int* A, int* b, int* result, const unsigned int n);
+void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const unsigned int n, const unsigned int bytes);
 
 char* readSourceFile(const char* filename);
 int readBool(const char c);
 void flush();
-void printMatrix(double* matrix, int n, int m);
-void initVector(double* vector, int n);
-void initVectorWithNull(double* vector, int n);
-void initMatrix(double* matrix, int n, int m);
-void initMatrixWithNull(double* matrix, int n, int m);
+void printMatrix(int* matrix, const unsigned int n, const unsigned int m);
+void initVector(int* vector, const unsigned int n);
+void initVectorWithNull(int* vector, const unsigned int n);
+void initMatrix(int* matrix, const unsigned int n, const unsigned int m);
+void initMatrixWithNull(int* matrix, const unsigned int n, const unsigned int m);
 
-void matrixVectorMultiplication(double* A, double* b, double* result, int n);
-double magnitudeVector(double* vector, int n);
+void matrixVectorMultiplication(int* A, int* b, int* result, const unsigned int n);
+double magnitudeVector(int* vector, const unsigned int n);
 
 using namespace std;
 
@@ -30,11 +30,11 @@ int main(int argc, char* argv[])
 	const char* kernelSource = readSourceFile("Kernel.cl");
 
 	// Host input vectors
-	double *h_A;
-	double *h_b;
+	int *h_A;
+	int *h_b;
 
 	// Host output vector
-	double *h_c;
+	int *h_c;
 
 	// Length of vectors
 	unsigned int n = 256;
@@ -43,12 +43,12 @@ int main(int argc, char* argv[])
 	scanf_s("%d", &n);
 	flush();
 
-	size_t bytes = n * sizeof(double);  // Size, in bytes, of each vector
+	size_t bytes = n * sizeof(int);  // Size, in bytes, of each vector
 
 	// Allocate memory for each vector on host
-	h_A = (double*)malloc(bytes * bytes);
-	h_b = (double*)malloc(bytes);
-	h_c = (double*)malloc(bytes);
+	h_A = (int*)malloc(bytes * bytes);
+	h_b = (int*)malloc(bytes);
+	h_c = (int*)malloc(bytes);
 
 	// Initialize vectors on host
 	printf_s("init...\n");
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 	
 	initVectorWithNull(h_c, n);
 
-	testOpenCL(kernelSource, h_A, h_b, h_c, n);
+	testOpenCL(kernelSource, h_A, h_b, h_c, n, bytes);
 
 	//release host memory
 	free(h_A);
@@ -84,19 +84,19 @@ void flush()
 	while (getchar() != '\n');
 }
 
-void printMatrix(double* matrix, int n, int m) 
+void printMatrix(int* matrix, const unsigned int n, const unsigned int m)
 {
 	for (int n0 = 0; n0 < n; n0++)
 	{
 		for (int m0 = 0; m0 < m; m0++)
 		{
-			printf_s("%f ", matrix[n0 * n + m0]);
+			printf_s("%d ", matrix[n0 * n + m0]);
 		}
 		printf_s("\n");
 	}
 }
 
-void testMVMWithoutThreading(double* A, double* b, double* result, int n)
+void testMVMWithoutThreading(int* A, int* b, int* result, const unsigned int n)
 {
 	clock_t start_normal = clock();
 
@@ -112,9 +112,8 @@ void testMVMWithoutThreading(double* A, double* b, double* result, int n)
 	printf_s("final result: %f\n", sum / n);
 }
 
-void testOpenCL(const char* kernelSource, double * h_A, double * h_b, double * h_c, int n)
+void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const unsigned int n, const unsigned int bytes)
 {
-	size_t bytes = n * sizeof(double);
 	// Device input buffers
 	cl_mem d_A;
 	cl_mem d_b;
@@ -170,6 +169,7 @@ void testOpenCL(const char* kernelSource, double * h_A, double * h_b, double * h
 	d_b = clCreateBuffer(context, CL_MEM_READ_ONLY, bytes, NULL, NULL);
 	d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, bytes, NULL, NULL);
 
+	clock_t start_GPU = clock();
 	// Write our data set into the input array in device memory
 	err = clEnqueueWriteBuffer(queue, d_A, CL_TRUE, 0, bytes * bytes, h_A, 0, NULL, NULL);
 	err |= clEnqueueWriteBuffer(queue, d_b, CL_TRUE, 0, bytes, h_b, 0, NULL, NULL);
@@ -182,8 +182,7 @@ void testOpenCL(const char* kernelSource, double * h_A, double * h_b, double * h
 	err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &n);
 	printf("SetKernelArgs: %d\n", err);
 
-	// -------------------------------------------------------------------------------------- Start auf GPU
-	clock_t start_GPU = clock();
+
 	// Execute the kernel over the entire range of the data set  
 	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
 
@@ -200,7 +199,6 @@ void testOpenCL(const char* kernelSource, double * h_A, double * h_b, double * h
 	//Sum up vector c and print result divided by n, this should equal 1 within error
 	double sum = magnitudeVector(h_c, n);
 	printf_s("final result: %f\n", sum / n);
-	// -------------------------------------------------------------------------------------- Ende GPU
 
 	// release OpenCL resources
 	clReleaseMemObject(d_A);
@@ -228,7 +226,7 @@ char* readSourceFile(const char* filename)
 	return source;
 }
 
-void initVector(double* vector, int n)
+void initVector(int* vector, int const unsigned n)
 {
 	srand(time(NULL));
 
@@ -239,7 +237,7 @@ void initVector(double* vector, int n)
 	}
 }
 
-void initVectorWithNull(double* vector, int n)
+void initVectorWithNull(int* vector, const unsigned int n)
 {
 #pragma omp parallel for
 	for (int i = 0; i < n; i++)
@@ -248,7 +246,7 @@ void initVectorWithNull(double* vector, int n)
 	}
 }
 
-void initMatrix(double* matrix, int n, int m)
+void initMatrix(int* matrix, const unsigned int n, const unsigned int m)
 {
 	int size = n * m;
 	#pragma omp parallel for
@@ -263,7 +261,7 @@ void initMatrix(double* matrix, int n, int m)
 	}
 }
 
-void initMatrixWithNull(double* matrix, int n, int m)
+void initMatrixWithNull(int* matrix, const unsigned int n, const unsigned int m)
 {
 	int size = n * m;
 #pragma omp parallel for
@@ -273,7 +271,7 @@ void initMatrixWithNull(double* matrix, int n, int m)
 	}
 }
 
-void matrixVectorMultiplication(double* A, double* b, double* result, int n) 
+void matrixVectorMultiplication(int* A, int* b, int* result, const unsigned int n)
 {
 	/*unsigned int posB;
 	int rowCounter = 0;
@@ -303,7 +301,7 @@ void matrixVectorMultiplication(double* A, double* b, double* result, int n)
 	}
 }
 
-double magnitudeVector(double* vector, int n)
+double magnitudeVector(int* vector, const unsigned int n)
 {
 	double sum = 0;
 	for (int i = 0; i < n; i++)
