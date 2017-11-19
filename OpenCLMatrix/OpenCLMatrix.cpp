@@ -8,20 +8,20 @@
 #include <string>
 #include <sstream>
 
-void testMVMWithoutThreading(int* A, int* b, int* result, const unsigned int n);
-void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const unsigned int n, const unsigned int bytes);
+void testMVMWithoutThreading(int* A, int* b, int* result, const size_t n);
+void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const size_t n, const size_t bytes, size_t localSize);
 
 char* readSourceFile(const char* filename);
 int readBool(const char c);
 void flush();
-void printMatrix(int* matrix, const unsigned int n, const unsigned int m);
-void initVector(int* vector, const unsigned int n);
-void initVectorWithNull(int* vector, const unsigned int n);
-void initMatrix(int* matrix, const unsigned int n, const unsigned int m);
-void initMatrixWithNull(int* matrix, const unsigned int n, const unsigned int m);
+void printMatrix(int* matrix, const size_t n, const size_t m);
+void initVector(int* vector, const size_t n);
+void initVectorWithNull(int* vector, const size_t n);
+void initMatrix(int* matrix, const unsigned int n, const size_t m);
+void initMatrixWithNull(int* matrix, const unsigned int n, const size_t m);
 
-void matrixVectorMultiplication(int* A, int* b, int* result, const unsigned int n);
-double magnitudeVector(int* vector, const unsigned int n);
+void matrixVectorMultiplication(int* A, int* b, int* result, const size_t n);
+double magnitudeVector(int* vector, const size_t n);
 
 using namespace std;
 
@@ -37,10 +37,16 @@ int main(int argc, char* argv[])
 	int *h_c;
 
 	// Length of vectors
-	unsigned int n = 256;
+	size_t n = 256;
+
+	// Number of work items in each local work group
+	size_t localSize = 64;
 
 	printf_s("n=");
 	scanf_s("%d", &n);
+	flush();
+	printf_s("localSize=");
+	scanf_s("%d", &localSize);
 	flush();
 
 	size_t bytes = n * sizeof(int);  // Size, in bytes, of each vector
@@ -60,7 +66,7 @@ int main(int argc, char* argv[])
 	
 	initVectorWithNull(h_c, n);
 
-	testOpenCL(kernelSource, h_A, h_b, h_c, n, bytes);
+	testOpenCL(kernelSource, h_A, h_b, h_c, n, bytes, localSize);
 
 	//release host memory
 	free(h_A);
@@ -84,11 +90,11 @@ void flush()
 	while (getchar() != '\n');
 }
 
-void printMatrix(int* matrix, const unsigned int n, const unsigned int m)
+void printMatrix(int* matrix, const unsigned int n, const size_t m)
 {
-	for (int n0 = 0; n0 < n; n0++)
+	for (size_t n0 = 0; n0 < n; n0++)
 	{
-		for (int m0 = 0; m0 < m; m0++)
+		for (size_t m0 = 0; m0 < m; m0++)
 		{
 			printf_s("%d ", matrix[n0 * n + m0]);
 		}
@@ -96,7 +102,7 @@ void printMatrix(int* matrix, const unsigned int n, const unsigned int m)
 	}
 }
 
-void testMVMWithoutThreading(int* A, int* b, int* result, const unsigned int n)
+void testMVMWithoutThreading(int* A, int* b, int* result, const size_t n)
 {
 	clock_t start_normal = clock();
 
@@ -112,7 +118,7 @@ void testMVMWithoutThreading(int* A, int* b, int* result, const unsigned int n)
 	printf_s("final result: %f\n \n", sum / n);
 }
 
-void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const unsigned int n, const unsigned int bytes)
+void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const size_t n, const size_t bytes, size_t localSize)
 {
 	// Device input buffers
 	cl_mem d_A;
@@ -127,11 +133,8 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const un
 	cl_program program;				  // program
 	cl_kernel kernel;				  // kernel
 
-	size_t globalSize, localSize;
+	size_t globalSize;
 	cl_int err;
-
-	// Number of work items in each local work group
-	localSize = 64;
 
 	// Number of total work items - localSize must be devisor
 	globalSize = ceil(n / (float)localSize) * localSize;
@@ -149,8 +152,8 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const un
 	printf("CreateContext: %d\n", err);
 
 	// Create a command queue 
-	queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
-	//queue = clCreateCommandQueue(context, device_id, NULL, &err);
+	//queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
+	queue = clCreateCommandQueue(context, device_id, NULL, &err);
 	printf("CreateCommandQueue: %d\n", err);
 
 	// Create the compute program from the source buffer
@@ -226,7 +229,7 @@ char* readSourceFile(const char* filename)
 	return source;
 }
 
-void initVector(int* vector, int const unsigned n)
+void initVector(int* vector, size_t n)
 {
 	srand(time(NULL));
 
@@ -237,7 +240,7 @@ void initVector(int* vector, int const unsigned n)
 	}
 }
 
-void initVectorWithNull(int* vector, const unsigned int n)
+void initVectorWithNull(int* vector, const size_t n)
 {
 #pragma omp parallel for
 	for (int i = 0; i < n; i++)
@@ -246,7 +249,7 @@ void initVectorWithNull(int* vector, const unsigned int n)
 	}
 }
 
-void initMatrix(int* matrix, const unsigned int n, const unsigned int m)
+void initMatrix(int* matrix, const size_t n, const size_t m)
 {
 	int size = n * m;
 	#pragma omp parallel for
@@ -261,7 +264,7 @@ void initMatrix(int* matrix, const unsigned int n, const unsigned int m)
 	}
 }
 
-void initMatrixWithNull(int* matrix, const unsigned int n, const unsigned int m)
+void initMatrixWithNull(int* matrix, const size_t n, const size_t m)
 {
 	int size = n * m;
 #pragma omp parallel for
@@ -271,26 +274,8 @@ void initMatrixWithNull(int* matrix, const unsigned int n, const unsigned int m)
 	}
 }
 
-void matrixVectorMultiplication(int* A, int* b, int* result, const unsigned int n)
+void matrixVectorMultiplication(int* A, int* b, int* result, const size_t n)
 {
-	/*unsigned int posB;
-	int rowCounter = 0;
-	int vectorRowCurser = 0;
-	int rowAdd = 0;
-
-	for (int i = 0; i < n * n; i++)
-	{
-		posB = (i % n);
-		rowAdd += A[i] * b[posB];
-		rowCounter++;
-		if (rowCounter == n) {
-			result[vectorRowCurser] = rowAdd;
-			rowAdd = 0;
-			vectorRowCurser++;
-			rowCounter = 0;
-		}
-	}*/
-
 	for (int i = 0; i < n; i++) 
 	{
 		result[i] = 0;
@@ -301,7 +286,7 @@ void matrixVectorMultiplication(int* A, int* b, int* result, const unsigned int 
 	}
 }
 
-double magnitudeVector(int* vector, const unsigned int n)
+double magnitudeVector(int* vector, const size_t n)
 {
 	double sum = 0;
 	for (int i = 0; i < n; i++)
