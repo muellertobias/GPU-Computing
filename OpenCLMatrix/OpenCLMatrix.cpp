@@ -106,10 +106,10 @@ void testMVMWithoutThreading(int* A, int* b, int* result, const unsigned int n)
 	clock_t difference = stop_normal - start_normal;
 	double t = (double)difference / CLOCKS_PER_SEC;
 
-	printf_s("Finished Normal: %f s\n", t);
+	printf_s(" \nFinished Normal: %f s\n", t);
 	// ---------------------------------------- Bis hier
 	double sum = magnitudeVector(result, n);
-	printf_s("final result: %f\n", sum / n);
+	printf_s("final result: %f\n \n", sum / n);
 }
 
 void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const unsigned int n, const unsigned int bytes)
@@ -149,8 +149,8 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const un
 	printf("CreateContext: %d\n", err);
 
 	// Create a command queue 
+	queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
 	//queue = clCreateCommandQueue(context, device_id, NULL, &err);
-	queue = clCreateCommandQueue(context, device_id, NULL, &err);
 	printf("CreateCommandQueue: %d\n", err);
 
 	// Create the compute program from the source buffer
@@ -194,11 +194,11 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const un
 
 	clock_t stop_GPU = clock();
 	double t = (stop_GPU - start_GPU) / CLOCKS_PER_SEC;
-	printf_s("Finished GPU: %f s\n", t);
+	printf_s(" \nFinished GPU: %f s\n", t);
 
 	//Sum up vector c and print result divided by n, this should equal 1 within error
 	double sum = magnitudeVector(h_c, n);
-	printf_s("final result: %f\n", sum / n);
+	printf_s("final result: %f\n \n", sum / n);
 
 	// release OpenCL resources
 	clReleaseMemObject(d_A);
