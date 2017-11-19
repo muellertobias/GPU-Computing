@@ -11,6 +11,8 @@
 void testMVMWithoutThreading(int* A, int* b, int* result, const size_t n);
 void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const size_t n, const size_t bytes, size_t localSize);
 
+void callGPU(cl_event& event, cl_int &err, const cl_command_queue &queue, cl_mem &d_A, const size_t &bytes, int * h_A, cl_mem &d_b, int * h_b, const cl_kernel &kernel, cl_mem &d_c, const size_t &n, size_t &globalSize, size_t &localSize, int * h_c);
+
 char* readSourceFile(const char* filename);
 int readBool(const char c);
 void flush();
@@ -112,7 +114,7 @@ void testMVMWithoutThreading(int* A, int* b, int* result, const size_t n)
 	clock_t difference = stop_normal - start_normal;
 	double t = (double)difference / CLOCKS_PER_SEC;
 
-	printf_s(" \nFinished Normal: %f s\n", t);
+	printf_s(" \nFinished Normal: %f ms\n", t / 1000);
 	// ---------------------------------------- Bis hier
 	double sum = magnitudeVector(result, n);
 	printf_s("final result: %f\n \n", sum / n);
@@ -151,9 +153,10 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const si
 	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
 	printf("CreateContext: %d\n", err);
 
+	cl_event event;
 	// Create a command queue 
 	//queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &err);
-	queue = clCreateCommandQueue(context, device_id, NULL, &err);
+	queue = clCreateCommandQueue(context, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
 	printf("CreateCommandQueue: %d\n", err);
 
 	// Create the compute program from the source buffer
@@ -172,32 +175,14 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const si
 	d_b = clCreateBuffer(context, CL_MEM_READ_ONLY, bytes, NULL, NULL);
 	d_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, bytes, NULL, NULL);
 
-	clock_t start_GPU = clock();
-	// Write our data set into the input array in device memory
-	err = clEnqueueWriteBuffer(queue, d_A, CL_TRUE, 0, bytes * bytes, h_A, 0, NULL, NULL);
-	err |= clEnqueueWriteBuffer(queue, d_b, CL_TRUE, 0, bytes, h_b, 0, NULL, NULL);
-	printf("EnqueueWriteBuffers: %d\n", err);
+	callGPU(event, err, queue, d_A, bytes, h_A, d_b, h_b, kernel, d_c, n, globalSize, localSize, h_c);
 
-	// Set the arguments to our compute kernel
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_A);
-	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_b);
-	err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_c);
-	err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &n);
-	printf("SetKernelArgs: %d\n", err);
-
-
-	// Execute the kernel over the entire range of the data set  
-	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &localSize, 0, NULL, NULL);
-
-	// Wait for the command queue to get serviced before reading back results
-	clFinish(queue);
-
-	// Read the results from the device
-	clEnqueueReadBuffer(queue, d_c, CL_TRUE, 0, bytes, h_c, 0, NULL, NULL);
-
-	clock_t stop_GPU = clock();
-	double t = (stop_GPU - start_GPU) / CLOCKS_PER_SEC;
-	printf_s(" \nFinished GPU: %f s\n", t);
+	cl_ulong time_start, time_end;
+	double total_time;
+	clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(time_start), &time_start, NULL);
+	clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
+	total_time = time_end - time_start;
+	printf("OpenCL Execution time: %f ms\n", total_time / 1000000.0);
 
 	//Sum up vector c and print result divided by n, this should equal 1 within error
 	double sum = magnitudeVector(h_c, n);
@@ -211,6 +196,32 @@ void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const si
 	clReleaseKernel(kernel);
 	clReleaseCommandQueue(queue);
 	clReleaseContext(context);
+}
+
+void callGPU(cl_event& event, cl_int &err, const cl_command_queue &queue, cl_mem &d_A, const size_t &bytes, int * h_A, cl_mem &d_b, int * h_b, const cl_kernel &kernel, cl_mem &d_c, const size_t &n, size_t &globalSize, size_t &localSize, int * h_c)
+{	
+	// Write our data set into the input array in device memory
+	err = clEnqueueWriteBuffer(queue, d_A, CL_TRUE, 0, bytes * bytes, h_A, 0, NULL, NULL);
+	err |= clEnqueueWriteBuffer(queue, d_b, CL_TRUE, 0, bytes, h_b, 0, NULL, NULL);
+	//printf("EnqueueWriteBuffers: %d\n", err);
+
+	// Set the arguments to our compute kernel
+	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &d_A);
+	err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &d_b);
+	err |= clSetKernelArg(kernel, 2, sizeof(cl_mem), &d_c);
+	err |= clSetKernelArg(kernel, 3, sizeof(unsigned int), &n);
+	//printf("SetKernelArgs: %d\n", err);
+
+
+	// Execute the kernel over the entire range of the data set  
+	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &localSize, 0, NULL, &event);
+
+	clWaitForEvents(1, &event);
+	// Wait for the command queue to get serviced before reading back results
+	clFinish(queue);
+
+	// Read the results from the device
+	clEnqueueReadBuffer(queue, d_c, CL_TRUE, 0, bytes, h_c, 0, NULL, NULL);
 }
 
 char* readSourceFile(const char* filename)
@@ -234,7 +245,7 @@ void initVector(int* vector, size_t n)
 	srand(time(NULL));
 
 #pragma omp parallel for
-	for (int i = 0; i < n; i++)
+	for (long i = 0; i < n; i++)
 	{
 		vector[i] = 5 - (i % 5);
 	}
@@ -243,7 +254,7 @@ void initVector(int* vector, size_t n)
 void initVectorWithNull(int* vector, const size_t n)
 {
 #pragma omp parallel for
-	for (int i = 0; i < n; i++)
+	for (long i = 0; i < n; i++)
 	{
 		vector[i] = 0;
 	}
@@ -251,12 +262,12 @@ void initVectorWithNull(int* vector, const size_t n)
 
 void initMatrix(int* matrix, const size_t n, const size_t m)
 {
-	int size = n * m;
+	size_t size = n * m;
 	#pragma omp parallel for
-	for (int i = 0; i < size; i++)
+	for (long i = 0; i < size; i++)
 	{
-		int j_0 = i % n;
-		int i_0 = (i - j_0) / n;
+		size_t j_0 = i % n;
+		size_t i_0 = (i - j_0) / n;
 
 		// A[i][j] = (i + j) % 5
 		matrix[i] = (i_0 + j_0) % 5; 
@@ -266,7 +277,7 @@ void initMatrix(int* matrix, const size_t n, const size_t m)
 
 void initMatrixWithNull(int* matrix, const size_t n, const size_t m)
 {
-	int size = n * m;
+	size_t size = n * m;
 #pragma omp parallel for
 	for (int i = 0; i < size; i++)
 	{
@@ -279,7 +290,7 @@ void matrixVectorMultiplication(int* A, int* b, int* result, const size_t n)
 	for (int i = 0; i < n; i++) 
 	{
 		result[i] = 0;
-		for (int j = 0; j < n; j++) 
+		for (size_t j = 0; j < n; j++)
 		{
 			result[i] += A[i * n + j] * b[j];
 		}
@@ -289,7 +300,7 @@ void matrixVectorMultiplication(int* A, int* b, int* result, const size_t n)
 double magnitudeVector(int* vector, const size_t n)
 {
 	double sum = 0;
-	for (int i = 0; i < n; i++)
+	for (size_t i = 0; i < n; i++)
 	{
 		sum += vector[i];
 	}
