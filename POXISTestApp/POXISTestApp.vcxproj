@@ -106,8 +106,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TM_Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Julian\Desktop\KIM 3.Semester\GPU-Computing\Posix-20171109T102416Z-001\Posix\prebuilt-dll-2-9-1-release\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Julian\Desktop\KIM 3.Semester\GPU-Computing\Posix-20171109T102416Z-001\Posix\prebuilt-dll-2-9-1-release\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>G:\Google Drive\KIM\3. Semester\GPU-Computing\Übung 2\Posix\prebuilt-dll-2-9-1-release\include;$(IncludePath)</IncludePath>
+    <LibraryPath>G:\Google Drive\KIM\3. Semester\GPU-Computing\Übung 2\Posix\prebuilt-dll-2-9-1-release\lib\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -165,7 +165,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\Users\Julian\Desktop\KIM 3.Semester\GPU-Computing\Posix-20171109T102416Z-001\Posix\prebuilt-dll-2-9-1-release\lib\x86\pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>G:\Google Drive\KIM\3. Semester\GPU-Computing\Übung 2\Posix\prebuilt-dll-2-9-1-release\lib\x86\pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
