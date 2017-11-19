@@ -8,7 +8,7 @@
 #include <string>
 #include <sstream>
 
-#define type float
+#define type int // float, double
 
 void testMVMWithoutThreading(type* A, type* b, type* result, const size_t n);
 void testOpenCL(const char* kernelSource, type* h_A, type* h_b, type* h_c, const size_t n, const size_t bytes, size_t localSize);
@@ -25,7 +25,6 @@ void initMatrix(type* matrix, const unsigned int n, const size_t m);
 void initMatrixWithNull(type* matrix, const unsigned int n, const size_t m);
 
 void matrixVectorMultiplication(type* A, type* b, type* result, const size_t n);
-double magnitudeVector(type* vector, const size_t n);
 
 using namespace std;
 
@@ -117,9 +116,6 @@ void testMVMWithoutThreading(type* A, type* b, type* result, const size_t n)
 	double t = (double)difference / CLOCKS_PER_SEC;
 
 	printf_s(" \nFinished Normal: %f ms\n", t / 1000);
-	// ---------------------------------------- Bis hier
-	double sum = magnitudeVector(result, n);
-	printf_s("final result: %f\n \n", sum / n);
 }
 
 void testOpenCL(const char* kernelSource, type* h_A, type* h_b, type* h_c, const size_t n, const size_t bytes, size_t localSize)
@@ -185,10 +181,6 @@ void testOpenCL(const char* kernelSource, type* h_A, type* h_b, type* h_c, const
 	clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(time_end), &time_end, NULL);
 	total_time = time_end - time_start;
 	printf("OpenCL Execution time: %f ms\n", total_time / 1000000.0);
-
-	//Sum up vector c and print result divided by n, this should equal 1 within error
-	double sum = magnitudeVector(h_c, n);
-	printf_s("final result: %f\n \n", sum / n);
 
 	// release OpenCL resources
 	clReleaseMemObject(d_A);
@@ -297,14 +289,4 @@ void matrixVectorMultiplication(type* A, type* b, type* result, const size_t n)
 			result[i] += A[i * n + j] * b[j];
 		}
 	}
-}
-
-double magnitudeVector(type* vector, const size_t n)
-{
-	double sum = 0;
-	for (size_t i = 0; i < n; i++)
-	{
-		sum += vector[i];
-	}
-	return sum;
 }
