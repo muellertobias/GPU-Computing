@@ -8,24 +8,22 @@
 #include <string>
 #include <sstream>
 
-#define type float
+void testMVMWithoutThreading(int* A, int* b, int* result, const size_t n);
+void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const size_t n, const size_t bytes, size_t localSize);
 
-void testMVMWithoutThreading(type* A, type* b, type* result, const size_t n);
-void testOpenCL(const char* kernelSource, type* h_A, type* h_b, type* h_c, const size_t n, const size_t bytes, size_t localSize);
-
-void callGPU(cl_event& event, cl_int &err, const cl_command_queue &queue, cl_mem &d_A, const size_t &bytes, type * h_A, cl_mem &d_b, type * h_b, const cl_kernel &kernel, cl_mem &d_c, const size_t &n, size_t &globalSize, size_t &localSize, type * h_c);
+void callGPU(cl_event& event, cl_int &err, const cl_command_queue &queue, cl_mem &d_A, const size_t &bytes, int * h_A, cl_mem &d_b, int * h_b, const cl_kernel &kernel, cl_mem &d_c, const size_t &n, size_t &globalSize, size_t &localSize, int * h_c);
 
 char* readSourceFile(const char* filename);
 int readBool(const char c);
 void flush();
-void printMatrix(type* matrix, const size_t n, const size_t m);
-void initVector(type* vector, const size_t n);
-void initVectorWithNull(type* vector, const size_t n);
-void initMatrix(type* matrix, const unsigned int n, const size_t m);
-void initMatrixWithNull(type* matrix, const unsigned int n, const size_t m);
+void printMatrix(int* matrix, const size_t n, const size_t m);
+void initVector(int* vector, const size_t n);
+void initVectorWithNull(int* vector, const size_t n);
+void initMatrix(int* matrix, const unsigned int n, const size_t m);
+void initMatrixWithNull(int* matrix, const unsigned int n, const size_t m);
 
-void matrixVectorMultiplication(type* A, type* b, type* result, const size_t n);
-double magnitudeVector(type* vector, const size_t n);
+void matrixVectorMultiplication(int* A, int* b, int* result, const size_t n);
+double magnitudeVector(int* vector, const size_t n);
 
 using namespace std;
 
@@ -34,11 +32,11 @@ int main(int argc, char* argv[])
 	const char* kernelSource = readSourceFile("Kernel.cl");
 
 	// Host input vectors
-	type *h_A;
-	type *h_b;
+	int *h_A;
+	int *h_b;
 
 	// Host output vector
-	type *h_c;
+	int *h_c;
 
 	// Length of vectors
 	size_t n = 256;
@@ -53,12 +51,12 @@ int main(int argc, char* argv[])
 	scanf_s("%d", &localSize);
 	flush();
 
-	size_t bytes = n * sizeof(type);  // Size, in bytes, of each vector
+	size_t bytes = n * sizeof(int);  // Size, in bytes, of each vector
 
 	// Allocate memory for each vector on host
-	h_A = (type*)malloc(bytes * bytes);
-	h_b = (type*)malloc(bytes);
-	h_c = (type*)malloc(bytes);
+	h_A = (int*)malloc(bytes * bytes);
+	h_b = (int*)malloc(bytes);
+	h_c = (int*)malloc(bytes);
 
 	// Initialize vectors on host
 	printf_s("init...\n");
@@ -94,7 +92,7 @@ void flush()
 	while (getchar() != '\n');
 }
 
-void printMatrix(type* matrix, const unsigned int n, const size_t m)
+void printMatrix(int* matrix, const unsigned int n, const size_t m)
 {
 	for (size_t n0 = 0; n0 < n; n0++)
 	{
@@ -106,7 +104,7 @@ void printMatrix(type* matrix, const unsigned int n, const size_t m)
 	}
 }
 
-void testMVMWithoutThreading(type* A, type* b, type* result, const size_t n)
+void testMVMWithoutThreading(int* A, int* b, int* result, const size_t n)
 {
 	clock_t start_normal = clock();
 
@@ -122,7 +120,7 @@ void testMVMWithoutThreading(type* A, type* b, type* result, const size_t n)
 	printf_s("final result: %f\n \n", sum / n);
 }
 
-void testOpenCL(const char* kernelSource, type* h_A, type* h_b, type* h_c, const size_t n, const size_t bytes, size_t localSize)
+void testOpenCL(const char* kernelSource, int* h_A, int* h_b, int* h_c, const size_t n, const size_t bytes, size_t localSize)
 {
 	// Device input buffers
 	cl_mem d_A;
@@ -200,7 +198,7 @@ void testOpenCL(const char* kernelSource, type* h_A, type* h_b, type* h_c, const
 	clReleaseContext(context);
 }
 
-void callGPU(cl_event& event, cl_int &err, const cl_command_queue &queue, cl_mem &d_A, const size_t &bytes, type * h_A, cl_mem &d_b, type * h_b, const cl_kernel &kernel, cl_mem &d_c, const size_t &n, size_t &globalSize, size_t &localSize, type * h_c)
+void callGPU(cl_event& event, cl_int &err, const cl_command_queue &queue, cl_mem &d_A, const size_t &bytes, int * h_A, cl_mem &d_b, int * h_b, const cl_kernel &kernel, cl_mem &d_c, const size_t &n, size_t &globalSize, size_t &localSize, int * h_c)
 {	
 	// Write our data set into the input array in device memory
 	err = clEnqueueWriteBuffer(queue, d_A, CL_TRUE, 0, bytes * bytes, h_A, 0, NULL, NULL);
@@ -242,7 +240,7 @@ char* readSourceFile(const char* filename)
 	return source;
 }
 
-void initVector(type* vector, size_t n)
+void initVector(int* vector, size_t n)
 {
 	srand(time(NULL));
 
@@ -253,7 +251,7 @@ void initVector(type* vector, size_t n)
 	}
 }
 
-void initVectorWithNull(type* vector, const size_t n)
+void initVectorWithNull(int* vector, const size_t n)
 {
 #pragma omp parallel for
 	for (long i = 0; i < n; i++)
@@ -262,7 +260,7 @@ void initVectorWithNull(type* vector, const size_t n)
 	}
 }
 
-void initMatrix(type* matrix, const size_t n, const size_t m)
+void initMatrix(int* matrix, const size_t n, const size_t m)
 {
 	size_t size = n * m;
 	#pragma omp parallel for
@@ -277,7 +275,7 @@ void initMatrix(type* matrix, const size_t n, const size_t m)
 	}
 }
 
-void initMatrixWithNull(type* matrix, const size_t n, const size_t m)
+void initMatrixWithNull(int* matrix, const size_t n, const size_t m)
 {
 	size_t size = n * m;
 #pragma omp parallel for
@@ -287,7 +285,7 @@ void initMatrixWithNull(type* matrix, const size_t n, const size_t m)
 	}
 }
 
-void matrixVectorMultiplication(type* A, type* b, type* result, const size_t n)
+void matrixVectorMultiplication(int* A, int* b, int* result, const size_t n)
 {
 	for (int i = 0; i < n; i++) 
 	{
@@ -299,7 +297,7 @@ void matrixVectorMultiplication(type* A, type* b, type* result, const size_t n)
 	}
 }
 
-double magnitudeVector(type* vector, const size_t n)
+double magnitudeVector(int* vector, const size_t n)
 {
 	double sum = 0;
 	for (size_t i = 0; i < n; i++)
