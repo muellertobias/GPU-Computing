@@ -6,13 +6,13 @@
 
 #define _UWIN
 
-const int P = 4;
-const int n = 160;
-const int rows = (n / P);
-float **A = new float*[n];
-float b[n];
-float c[n];
-typedef struct par { int base; long long sum; float sumRows[rows]; } Par;
+const int P = 16;
+const int N = 160;
+const int rows = (N / P);
+float **A = new float*[N];
+float b[N];
+float c[N];
+typedef struct par { int base; long long sum; float sumRows[rows]; } ThreadParameters;
 using namespace std;
 
 
@@ -47,11 +47,11 @@ void initMatrixWithRandom(float** matrix, int n, int m)
 	}
 }
 
-void* foo(void* vp) {
-	Par* p = (Par*)vp;
-	for (int i = p->base; i < p->base + n / P; i++) 
+void* threaded_add(void* vp) {
+	ThreadParameters* p = (ThreadParameters*)vp;
+	for (int i = p->base; i < p->base + N / P; i++) 
 	{
-		for (int j = 0; j < n; j++)
+		for (int j = 0; j < N; j++)
 		{
 			c[i] += A[i][j] * b[j];
 		}
@@ -62,21 +62,21 @@ void* foo(void* vp) {
 int main(int argc, char *argv[])
 {
 	pthread_t thr[P];
-	Par param[P];
+	ThreadParameters param[P];
 
 	cout << "Init..." << endl;
-	initVectorWithRandom(b, n);
-	initVectorWithNull(c, n);
-	initMatrixWithRandom(A, n, n);
+	initVectorWithRandom(b, N);
+	initVectorWithNull(c, N);
+	initMatrixWithRandom(A, N, N);
 
 	cout << "Sequenz:  Calculate A x b = c ..." << endl;
 	//-----Sequenz-----
 	clock_t startSeq = clock();
 
-	float cSeq[n];
-	initVectorWithNull(cSeq, n);
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++)
+	float cSeq[N];
+	initVectorWithNull(cSeq, N);
+	for (int i = 0; i < N; i++) {
+		for (int j = 0; j < N; j++)
 		{
 			cSeq[i] += A[i][j] * b[j];
 		}
@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
 	for (int i = 0; i < P; i++)
 	{
 		param[i].sum = 0;
-		param[i].base = i*n / P;
-		pthread_create(&thr[i], NULL, foo, (void*)&param[i]);
+		param[i].base = i * (N / P);
+		pthread_create(&thr[i], NULL, threaded_add, (void*)&param[i]);
 	}
 
 	for (int i = 0; i < P; i++) 
@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
 	double endThread = (double)(clock() - startThread) / CLOCKS_PER_SEC;
 	cout << "Time with threads: " << endThread;
 
-	int ende = 0;
-	scanf_s("%d", ende);
+	getchar();
 	return 0;
 }
