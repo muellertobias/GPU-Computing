@@ -114,6 +114,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TM_Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>G:\Google Drive\KIM\3. Semester\GPU-Computing\Übung 2\Posix\prebuilt-dll-2-9-1-release\include;$(IncludePath)</IncludePath>
+    <LibraryPath>G:\Google Drive\KIM\3. Semester\GPU-Computing\Übung 2\Posix\prebuilt-dll-2-9-1-release\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -192,6 +194,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>pthreadVC2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
